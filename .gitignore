@@ -1,4 +1,9 @@
-node_modules/
-dist/
-*.log
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+.vs/
+*.user
+*.suo
+TestResults/
 .DS_Store
