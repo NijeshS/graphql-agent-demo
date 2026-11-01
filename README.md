@@ -53,20 +53,32 @@ The schema SDL is served at `GET http://localhost:4000/graphql/schema` — that'
 
 ## Connect a real agent
 
-Build the MCP server once (`dotnet build src/McpServer`), then add it to your agent's MCP config (Copilot CLI, Claude Code, etc.):
+For VS Code, build the MCP server with `dotnet build src/McpServer`, then add this to `.vscode/mcp.json`:
 
 ```json
 {
-  "mcpServers": {
+  "servers": {
     "graphql-orders": {
+      "type": "stdio",
       "command": "dotnet",
-      "args": ["run", "--project", "/path/to/graphql-agent-demo/src/McpServer"]
+      "args": ["${workspaceFolder}/src/McpServer/bin/Debug/net9.0/McpServer.dll"],
+      "env": {
+        "GRAPHQL_URL": "http://localhost:4000/graphql",
+        "REST_URL": "http://localhost:4100"
+      }
     }
   }
 }
 ```
 
-(Keep both APIs running — the MCP server calls them over HTTP. Set `GRAPHQL_URL` and `REST_URL` if either API runs elsewhere.)
+`GRAPHQL_URL` should point to the GraphQL endpoint (including `/graphql`); `REST_URL` is the REST API base URL. Update these values if the APIs run on different addresses.
+
+Start both APIs before starting the MCP server in VS Code. In Copilot Chat, select **Agent** mode and use **MCP: List Servers** from the Command Palette to start or restart `graphql-orders`. The server exposes both `graphql_*` and `rest_*` tools.
+
+The APIs are separate toolsets on the same MCP server. To choose one for a request, name its tool prefix explicitly:
+
+- GraphQL only: “Use only `graphql_schema` and `graphql_query` to find the top five customers by Q4 revenue and their unpaid invoices.”
+- REST only: “Use only the `rest_*` tools to answer the same question. Show the separate REST calls you make.”
 
 Then ask, in plain English:
 
