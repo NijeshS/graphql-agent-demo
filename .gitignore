@@ -7,3 +7,4 @@ obj/
 *.suo
 TestResults/
 .DS_Store
+.vscode/
