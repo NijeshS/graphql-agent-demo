@@ -1,5 +1,5 @@
-// MCP server host (stdio transport). Tools live in GraphQlTools.cs.
-// Run the API first (dotnet run --project src/GraphQlApi), then this server:
+// MCP server host (stdio transport). Tools live in GraphQlTools.cs and RestTools.cs.
+// Run both APIs first (src/GraphQlApi and src/RestApi), then this server:
 //   dotnet run --project src/McpServer
 // Point any MCP client (Copilot CLI, Claude Code, ...) at this project.
 

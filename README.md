@@ -20,28 +20,34 @@ GraphQLAgentDemo.sln
 src/
   Shared/       Models + seed data: 8 customers, 15 orders, 14 invoices (Q4 2026)
   GraphQlApi/   HotChocolate API — described schema, cursor pagination, depth-limit guardrail
-  McpServer/    MCP server exposing the API to an agent as two tools
+  McpServer/    MCP server exposing GraphQL and REST APIs as separate tools
   RestApi/      The same data as REST — for the contrast demo
 tests/
-  McpTest/      Smoke test: schema read + demo query + self-correction on a bad query
+  McpTest/      Smoke test: GraphQL and REST tools through MCP
+  RestTest/     Smoke test: REST customer, order, invoice, filter, and 404 endpoints
 ```
 
-**Agent loop** (via MCP): `graphql_schema` → draft query → `graphql_query` → on error, read the GraphQL error, fix, retry.
+**Agent loop** (via MCP): compare the `graphql_*` tools with the `rest_*` tools. GraphQL can combine nested data in one query; REST exposes separate endpoint calls.
 
 ## Run it
 
-Requires the .NET 8 SDK (or later).
+Requires the .NET 9 SDK (or later).
 
 ```bash
 # Terminal 1 — GraphQL API on http://localhost:4000/graphql
 dotnet run --project src/GraphQlApi
 
-# Terminal 2 — smoke test the MCP server end to end (from the repo root)
+# Terminal 2 — REST API on http://localhost:4100
+dotnet run --project src/RestApi
+
+# Terminal 3 — MCP smoke test (from the repo root; both APIs must be running)
 dotnet run --project tests/McpTest
 
-# Optional — REST API on http://localhost:4100 for the contrast demo
-dotnet run --project src/RestApi
+# Terminal 4 — direct REST API smoke test (optional)
+dotnet run --project tests/RestTest
 ```
+
+`McpTest` checks both API toolsets through MCP and requires both APIs to be running. `RestTest` checks the REST endpoints directly.
 
 The schema SDL is served at `GET http://localhost:4000/graphql/schema` — that's what the MCP `graphql_schema` tool returns to the agent.
 
@@ -60,7 +66,7 @@ Build the MCP server once (`dotnet build src/McpServer`), then add it to your ag
 }
 ```
 
-(Keep the GraphQL API running — the MCP server calls it over HTTP. Set `GRAPHQL_URL` if the API runs elsewhere.)
+(Keep both APIs running — the MCP server calls them over HTTP. Set `GRAPHQL_URL` and `REST_URL` if either API runs elsewhere.)
 
 Then ask, in plain English:
 
@@ -81,6 +87,8 @@ The agent introspects the schema, finds `topCustomersByRevenue`, and answers wit
 ```
 
 Against the REST API the same question takes 4+ calls (`/orders`, group and sum client-side, `/customers/:id`, `/customers/:id/invoices` …) and several full payloads of fields nobody asked for.
+
+The REST API can also be called through MCP with tools such as `rest_orders`, `rest_customer`, and `rest_invoices(status: "OVERDUE")`. This lets an agent demonstrate the multiple REST calls alongside the single GraphQL query.
 
 ## Schema design rules for agents (as used in `GraphQlApi/Types.cs`)
 
